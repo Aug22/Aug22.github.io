@@ -1,0 +1,137 @@
+<!DOCTYPE html><html><head><meta name="generator" content="Hexo 3.8.0"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"><meta name="author" content="John Doe"><meta name="renderer" content="webkit"><meta name="copyright" content="John Doe"><meta name="keywords" content="Hexo"><meta name="description" content="null"><meta name="Cache-Control" content="no-cache"><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><title>php伪协议实现命令执行 · August</title><link rel="stylesheet" href="/css/style.css?v=2018.7.9"><link rel="stylesheet" href="/css/animation.css?v=2018.7.9"><link rel="icon" href="/img/assets/favicon.ico"><link rel="stylesheet" href="https://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css?version=1.5.6"><!-- scripts--><script>(function( w ){
+  "use strict";
+  // rel=preload support test
+  if( !w.loadCSS ){
+    w.loadCSS = function(){};
+  }
+  // define on the loadCSS obj
+  var rp = loadCSS.relpreload = {};
+  // rel=preload feature support test
+  // runs once and returns a function for compat purposes
+  rp.support = (function(){
+    var ret;
+    try {
+      ret = w.document.createElement( "link" ).relList.supports( "preload" );
+    } catch (e) {
+      ret = false;
+    }
+    return function(){
+      return ret;
+    };
+  })();
+
+  // if preload isn't supported, get an asynchronous load by using a non-matching media attribute
+  // then change that media back to its intended value on load
+  rp.bindMediaToggle = function( link ){
+    // remember existing media attr for ultimate state, or default to 'all'
+    var finalMedia = link.media || "all";
+
+    function enableStylesheet(){
+      link.media = finalMedia;
+    }
+
+    // bind load handlers to enable media
+    if( link.addEventListener ){
+      link.addEventListener( "load", enableStylesheet );
+    } else if( link.attachEvent ){
+      link.attachEvent( "onload", enableStylesheet );
+    }
+
+    // Set rel and non-applicable media type to start an async request
+    // note: timeout allows this to happen async to let rendering continue in IE
+    setTimeout(function(){
+      link.rel = "stylesheet";
+      link.media = "only x";
+    });
+    // also enable media after 3 seconds,
+    // which will catch very old browsers (android 2.x, old firefox) that don't support onload on link
+    setTimeout( enableStylesheet, 3000 );
+  };
+
+  // loop through link elements in DOM
+  rp.poly = function(){
+    // double check this to prevent external calls from running
+    if( rp.support() ){
+      return;
+    }
+    var links = w.document.getElementsByTagName( "link" );
+    for( var i = 0; i < links.length; i++ ){
+      var link = links[ i ];
+      // qualify links to those with rel=preload and as=style attrs
+      if( link.rel === "preload" && link.getAttribute( "as" ) === "style" && !link.getAttribute( "data-loadcss" ) ){
+        // prevent rerunning on link
+        link.setAttribute( "data-loadcss", true );
+        // bind listeners to toggle media back
+        rp.bindMediaToggle( link );
+      }
+    }
+  };
+
+  // if unsupported, run the polyfill
+  if( !rp.support() ){
+    // run once at least
+    rp.poly();
+
+    // rerun poly on an interval until onload
+    var run = w.setInterval( rp.poly, 500 );
+    if( w.addEventListener ){
+      w.addEventListener( "load", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    } else if( w.attachEvent ){
+      w.attachEvent( "onload", function(){
+        rp.poly();
+        w.clearInterval( run );
+      } );
+    }
+  }
+
+
+  // commonjs
+  if( typeof exports !== "undefined" ){
+    exports.loadCSS = loadCSS;
+  }
+  else {
+    w.loadCSS = loadCSS;
+  }
+}( typeof global !== "undefined" ? global : this ) );</script><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js" defer></script><script src="/js/main.js?v=2018.7.9" defer></script><!-- fancybox--><link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'"><script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.2.5/jquery.fancybox.min.js" defer></script><!-- busuanzi--><script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script></head><body><section class="profile-close" id="cxo-profile"><div class="profile-avatar"><i class="fa fa-caret-left"></i><img src="/img/assets/cat.png"></div><!--.profile-saying
+  i.fa.fa-comment
+  .saying--><div class="cxo-profile-inner"><div class="profile-name">August</div><div class="profile-signature">Je pense,donc je suis</div><div class="friends"><div>FRIENDS</div><span><a href="//github.com/" target="_black">friendA</a></span><span><a href="//github.com/" target="_black">friendB</a></span><span><a href="//github.com/" target="_black">friendC</a></span></div><div class="read-progress"></div></div></section><header id="cxo-intro" style="height: 70vh;background-image: url(/img/intro/index-bg.png);"><nav id="cxo-intro-nav"><section><div class="intro-nav-title"><a href="/">August</a></div><div class="intro-nav-label-box"><a href="/">Home</a><a href="/about/">About</a><a href="/archives/">Archives</a><a href="/tags/">Tags</a></div><i class="fa fa-bars intro-nav-menu"><div class="intro-nav-drop"><a href="/">Home</a><a href="/about/">About</a><a href="/archives/">Archives</a><a href="/tags/">Tags</a></div></i><div class="clear"></div></section></nav><h1 class="post-title">php伪协议实现命令执行</h1><div class="post-intros"><div class="post-intro-meta"><span class="post-intro-time"><i class="post-intro-calendar fa fa-calendar"></i><span>2018-12-20</span></span></div></div></header><article class="cxo-up" id="cxo-content-outer"><section id="cxo-content-inner"><article class="article-entry" id="post"><p>﻿# php伪协议实现命令执行</p>
+<p>标签： php伪协议</p>
+<hr>
+<pre><code>文件包含函数：include、require、include_once、require_once、highlight_file 、show_source 、readfile 、file_get_contents 、fopen 、file
+</code></pre><p>首先归纳下常见的文件包含函数：include、require、include_once、require_once、highlight_file 、show_source、readfile、file_get_contents、fopen、file，计划对文件包含漏洞与php封装协议的利用方法进行总结，本篇先总结下一些封装协议，涉及的相关协议：file://、php://filter、php://input、zip://、compress.bzip2://、compress.zlib://、data://，后续再对每个文件包含函数进一步进行探讨。</p>
+<h4 id="环境概要"><a href="#环境概要" class="headerlink" title="环境概要:"></a>环境概要:</h4><p>php.ini:</p>
+<p>allow_url_fopen ：on  默认开启  该选项为on便是激活了 URL 形式的 fopen 封装协议使得可以访问 URL 对象文件等。<br>allow_url_include：off  默认关闭，该选项为on便是允许 包含URL 对象文件等。</p>
+<h3 id="是否截断问题"><a href="#是否截断问题" class="headerlink" title="是否截断问题"></a><strong>是否截断问题</strong></h3><p>一、不需要截断：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/test.php?file=file:///c:/users/Thinking/desktop/flag.txt</span><br><span class="line">&lt;?php</span><br><span class="line">include($_GET[&apos;file&apos;])</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure></p>
+<p>二、需要截断：<br>在php版本&lt;=5.2中进行测试是可以使用%00截断的。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/test.php?file=file:///c:/users/Thinking/desktop/flag.txt%00</span><br><span class="line">&lt;?php</span><br><span class="line">include($_GET[&apos;file&apos;].’.php’)</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure></p>
+<h3 id="allow-url-fopen与allow-url-include是否开启问题："><a href="#allow-url-fopen与allow-url-include是否开启问题：" class="headerlink" title="allow_url_fopen与allow_url_include是否开启问题："></a><strong>allow_url_fopen与allow_url_include是否开启问题：</strong></h3><p>#####【<em>file://协议</em>】<br>文件系统 是 PHP 使用的默认封装协议，展现了本地文件系统。当指定了一个相对路径（不以/、\、\或 Windows 盘符开头的路径）提供的路径将基于当前的工作目录。在很多情况下是脚本所在的目录，除非被修改了。 使用 CLI 的时候，目录默认是脚本被调用时所在的目录。</p>
+<p>在某些函数里，例如 fopen() 和 file_get_contents()， include_path 会可选地搜索，也作为相对的路径。</p>
+<p>php.ini:<br>file:// 协议在双off的情况下也可以正常使用；<br>allow_url_fopen ：off/on<br>allow_url_include：off/on</p>
+<p>file:// 用于访问本地文件系统，在CTF中通常用来读取本地文件的且不受allow_url_fopen与allow_url_include的影响</p>
+<p>参考自：<a href="http://php.net/manual/zh/wrappers.file.php" target="_blank" rel="noopener">php官方描述</a><br><img src="https://image.3001.net/images/20170925/15063200727296.png" alt="此处输入图片的描述"></p>
+<p>使用方法：<br>file:// [文件的绝对路径和文件名]<br><a href="http://127.0.0.1/cmd.php?file=file://D:/phpStudy/WWW/php.txt" target="_blank" rel="noopener">http://127.0.0.1/cmd.php?file=file://D:/phpStudy/WWW/php.txt</a></p>
+<p>#####【<em>php://协议</em>】</p>
+<p>条件：</p>
+<p>不需要开启allow_url_fopen，仅php://input、 php://stdin、 php://memory 和 php://temp 需要开启allow_url_include。</p>
+<p>php:// 访问各个输入/输出流（I/Ostreams），在CTF中经常使用的是php://filter和php://input，php://filter用于读取源码，php://input用于执行php代码。</p>
+<p>参考自：<a href="http://php.net/manual/zh/wrappers.php.php#refsect2-wrappers.php-unknown-unknown-unknown-descriptioq" target="_blank" rel="noopener">http://php.net/manual/zh/wrappers.php.php#refsect2-wrappers.php-unknown-unknown-unknown-descriptioq</a></p>
+<p>php://filter 读取源代码并进行base64编码输出，不然会直接当做php代码执行就看不到源代码内容了。</p>
+<p>PHP.ini：<br>php://filter在双off的情况下也可以正常使用；<br>allow_url_fopen ：off/on<br>allow_url_include：off/on<br><img src="https://image.3001.net/images/20170925/15063201547706.png" alt="此处输入图片的描述"></p>
+<p><strong>php://input</strong> 可以访问请求的原始数据的只读流,将post请求中的数据作为PHP代码执行。</p>
+<p>PHP.ini：<br>allow_url_fopen ：off/on<br>allow_url_include：on</p>
+<p><img src="https://image.3001.net/images/20170925/15063203124515.png" alt="此处输入图片的描述"></p>
+<p>测试现象：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">http://127.0.0.1/cmd.php?file=php://input</span><br><span class="line">[POST DATA] &lt;?php phpinfo()?&gt;</span><br></pre></td></tr></table></figure></p>
+<p><img src="https://image.3001.net/images/20170925/15063203462640.png" alt="此处输入图片的描述"></p>
+<h5 id="【zip-bizp2-zlib-】"><a href="#【zip-bizp2-zlib-】" class="headerlink" title="【zip://,bizp2://,zlib://】"></a><em>【zip://,bizp2://,zlib://】</em></h5><p>php.ini:<br>zip://, bzip2://, zlib://协议在双off的情况下也可以正常使用；<br>allow_url_fopen ：off/on<br>allow_url_include：off/on</p>
+<p>zip://, bzip2://, zlib://均属于压缩流，可以访问压缩文件中的子文件，更重要的是不需要指定后缀名。<br>参考自：<a href="http://php.net/manual/zh/wrappers.compression.php" target="_blank" rel="noopener">http://php.net/manual/zh/wrappers.compression.php</a><br><img src="https://image.3001.net/images/20170925/15063203788414.png" alt="此处输入图片的描述"></p>
+<h5 id="【zip-协议】"><a href="#【zip-协议】" class="headerlink" title="【zip://协议】"></a><em>【zip://协议】</em></h5><p>zip://archive.zip#dir/file.txt<br>zip:// [压缩文件绝对路径]#[压缩文件内的子文件名]</p>
+<p>先将要执行的PHP代码写好文件名为phpcode.txt，将phpcode.txt进行zip压缩,压缩文件名为file.zip,如果可以上传zip文件便直接上传，若不能便将file.zip重命名为file.jpg后在上传，其他几种压缩格式也可以这样操作。由于#在get请求中会将后面的参数忽略所以使用get请求时候应进行url编码为%23，且此处经过测试相对路径是不可行，所以只能用绝对路径。</p>
+<p><img src="https://image.3001.net/images/20170925/15063203788414.png" alt="此处输入图片的描述"></p>
+<h5 id="【bzip2-协议】"><a href="#【bzip2-协议】" class="headerlink" title="【bzip2://协议】"></a><em>【bzip2://协议】</em></h5><p>compress.zlib://file.gz</p>
+<p><img src="https://image.3001.net/images/20170925/15063206299864.png" alt="此处输入图片的描述"></p>
+<h5 id="【data-协议】"><a href="#【data-协议】" class="headerlink" title="【data://协议】"></a><em>【data://协议】</em></h5><p>经过测试官方文档上存在一处问题，经过测试PHP版本5.2，5.3，5.5，7.0；data:// 协议是是受限于allow_url_fopen的，官方文档上给出的是NO，所以要使用data://协议需要满足双on条件</p>
+<p>PHP.ini：<br>data://协议必须双在on才能正常使用；<br>allow_url_fopen ：on<br>allow_url_include：on</p>
+<p>参考自：<a href="http://php.net/manual/zh/wrappers.data.php" target="_blank" rel="noopener">http://php.net/manual/zh/wrappers.data.php</a><br>官方文档上allow_url_fopen应为yes。<br><img src="https://image.3001.net/images/20170925/1506320720285.png" alt="此处输入图片的描述"></p>
+</article><!-- lincense--><div class="license-wrapper"><p> <span>Author:  </span><a href="http://yoursite.com">John Doe</a></p><p> <span>Link:  </span><a href="http://yoursite.com/2018/12/20/php伪协议实现命令执行/">http://yoursite.com/2018/12/20/php伪协议实现命令执行/</a></p><p> <span>Copyright:  </span><span>All articles in this blog are licensed under <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/3.0">CC BY-NC-SA 3.0</a> unless stating additionally.</span></p></div><div class="post-paginator"><a class="nextSlogan" href="/2018/12/09/Java反序列化漏洞分析/" title="Java按序列化漏洞分析"><span>NextPost ></span><br><span class="nextTitle">Java按序列化漏洞分析</span></a><div class="clear"></div></div><div id="comment"></div></section></article><footer id="cxo-footer-outer"><div id="cxo-footer-inner"><p class="footer-container"><span>Site by </span><a href="http://hexo.io"><span>Hexo</span></a><span> | theme </span><a href="https://github.com/Longlongyu/hexo-theme-Cxo"><span>Cxo</span></a></p><i class="fa fa-user"> </i><span id="busuanzi_value_site_uv"></span><span> | </span><i class="fa fa-eye"> </i><span id="busuanzi_value_site_pv"></span></div></footer><!-- catelog--><div class="toc-wrapper" style="top: 70vh;"><div class="toc-catalog"><i class="fa fa-list"> </i><span>CATALOG</span></div><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#环境概要"><span class="toc-number">1.</span> <span class="toc-text">环境概要:</span></a></li></ol><li class="toc-item toc-level-3"><a class="toc-link" href="#是否截断问题"><span class="toc-number"></span> <span class="toc-text">是否截断问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#allow-url-fopen与allow-url-include是否开启问题："><span class="toc-number"></span> <span class="toc-text">allow_url_fopen与allow_url_include是否开启问题：</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#【zip-bizp2-zlib-】"><span class="toc-number">0.1.</span> <span class="toc-text">【zip://,bizp2://,zlib://】</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#【zip-协议】"><span class="toc-number">0.2.</span> <span class="toc-text">【zip://协议】</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#【bzip2-协议】"><span class="toc-number">0.3.</span> <span class="toc-text">【bzip2://协议】</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#【data-协议】"><span class="toc-number">0.4.</span> <span class="toc-text">【data://协议】</span></a></li></ol></li></div><!-- top--><i class="fa fa-arrow-up close" id="go-up" aria-hidden="true"></i></body></html>
